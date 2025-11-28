@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, HTTPException
 from typing import List, Dict, Any
 import datetime
 import time
@@ -64,6 +64,8 @@ def generate_flights(num_flights: int) -> List[Dict[str, Any]]:
 FLIGHTS: List[Dict[str, Any]] = generate_flights(TARGET_FLIGHTS)
 print(f"[flight_api] Generated {len(FLIGHTS)} flights")  # goes to server console
 
+# 🔹 Fast lookup by flight id
+FLIGHTS_BY_ID: Dict[str, Dict[str, Any]] = {f["id"]: f for f in FLIGHTS}
 
 
 @app.get("/flights")
@@ -71,8 +73,10 @@ def search_flights(
     origin: str = Query(..., min_length=3, max_length=3),
     destination: str = Query(..., min_length=3, max_length=3),
     date: str = Query(..., description="YYYY-MM-DD"),
-) -> List[Dict]:
+) -> List[Dict[str, Any]]:
     """
+    Search flights by origin, destination, and date.
+
     Example:
     GET /flights?origin=ATH&destination=LHR&date=2025-12-01
     """
@@ -93,3 +97,22 @@ def search_flights(
         and f["destination"] == destination
         and f["date"] == date
     ]
+
+
+@app.get("/flights/{flight_id}")
+def get_flight_by_id(flight_id: str) -> Dict[str, Any]:
+    """
+    Get a single flight by its ID.
+
+    Example:
+    GET /flights/FL-000123
+    """
+
+    # ✅ simulate network latency (optional, a bit shorter)
+    time.sleep(random.uniform(0.1, 0.3))
+
+    flight = FLIGHTS_BY_ID.get(flight_id)
+    if not flight:
+        raise HTTPException(status_code=404, detail="Flight not found")
+
+    return flight
