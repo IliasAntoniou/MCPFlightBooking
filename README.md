@@ -19,6 +19,19 @@ Creation of an MCP mock system used to book flights that uses cache and replicat
 - `getflightbyid(id)`  
   Returns the details of the flight with the given ID.
 
+### `flightbooking.py`
+
+**Tools:**
+
+- `book_flight(user_id, flight_id, passenger_name, passenger_email, seats)`  
+  Creates a booking for the given user and flight.
+
+- `get_booking_details(booking_id)`  
+  Returns the details of the booking with the given ID.
+
+- `get_user_bookings(user_id)`  
+  Returns all bookings associated with the given user ID.
+
 ---
 
 ## Fake API
