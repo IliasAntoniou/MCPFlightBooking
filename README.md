@@ -1,9 +1,26 @@
 # MCPFlightBooking
-Creation of an MCP mock system used to books flights that uses cache and replication to achieve lower average latency, higher reliability and higher fault tolerance. 
 
-MCP server:
--flightsearch.py: This server has a tool that allows the user to search for specific flights after giving an origin, destination and date.
+Creation of an MCP mock system used to book flights that uses cache and replication to achieve:
+- lower average latency  
+- higher reliability  
+- higher fault tolerance  
 
-Fake API:
--Includes a mock API created to mimic a real API which generates 100k flights
+---
 
+## MCP Servers
+
+### `flightsearch.py`
+
+**Tools:**
+
+- `search_flights(origin, destination, date)`  
+  Returns all flights with the given parameters.
+
+- `getflightbyid(id)`  
+  Returns the details of the flight with the given ID.
+
+---
+
+## Fake API
+
+Includes a mock API created to mimic a real API which generates **100,000** flights.
