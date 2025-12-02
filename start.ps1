@@ -14,16 +14,17 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendDir';
 # Wait a bit for backend to start
 Start-Sleep -Seconds 3
 
-# Start Frontend Server (Gemini + MCP)
+# Start Backend Server (Gemini + MCP)
 Write-Host "[2/3] Starting Gemini + MCP Server on port 8001..." -ForegroundColor Green
-$frontendDir = Join-Path $rootDir "src\frontend"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$frontendDir'; Write-Host 'Gemini + MCP Server' -ForegroundColor Magenta; python -m uvicorn server:app --reload --port 8001"
+$backendServerDir = Join-Path $rootDir "src\backend"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendServerDir'; Write-Host 'Gemini + MCP Server' -ForegroundColor Magenta; python -m uvicorn server:app --reload --port 8001"
 
 # Wait a bit for frontend to start
 Start-Sleep -Seconds 3
 
 # Open the webpage
 Write-Host "[3/3] Opening webpage..." -ForegroundColor Green
+$frontendDir = Join-Path $rootDir "src\frontend"
 $indexPath = Join-Path $frontendDir "index.html"
 Start-Process $indexPath
 

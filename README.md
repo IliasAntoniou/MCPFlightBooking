@@ -14,7 +14,7 @@ An AI-powered flight booking application that demonstrates the Model Context Pro
                      │ HTTP/REST
                      ↓
 ┌─────────────────────────────────────────────────────┐
-│ FastAPI Backend (server.py)                        │
+│ Backend Server (server.py)                         │
 │ - GeminiMCPHost: Manages MCP client connections   │
 │ - Conversation history & session management        │
 │ - Tool authorization & execution flow              │
@@ -74,15 +74,15 @@ An AI-powered flight booking application that demonstrates the Model Context Pro
 MCPFlightBooking/
 ├── src/
 │   ├── backend/
+│   │   ├── server.py          # Main FastAPI app + MCP client host
 │   │   ├── config.py          # Centralized configuration
 │   │   ├── db.py              # Database operations
 │   │   ├── flight_api.py      # FastAPI flight search API
-│   │   └── flight_app.db      # SQLite database (100k flights)
+│   │   ├── flight_app.db      # SQLite database (100k flights)
+│   │   └── .env               # API keys (GOOGLE_AI_STUDIO_API_KEY)
 │   │
 │   ├── frontend/
-│   │   ├── server.py          # Main FastAPI app + MCP client host
-│   │   ├── index.html         # Web UI with chat interface
-│   │   └── .env               # API keys (GOOGLE_AI_STUDIO_API_KEY)
+│   │   └── index.html         # Web UI with chat interface
 │   │
 │   └── MCPservers/
 │       ├── flightsearch.py    # MCP server for flight search
@@ -124,7 +124,7 @@ MCPFlightBooking/
 
 3. **Configure environment variables**
    
-   Create `src/frontend/.env`:
+   Create `src/backend/.env`:
    ```
    GOOGLE_AI_STUDIO_API_KEY=your_api_key_here
    ```
@@ -162,7 +162,7 @@ python -m uvicorn flight_api:app --reload --port 8000
 
 **Terminal 2 - Main Server:**
 ```bash
-cd src/frontend
+cd src/backend
 python -m uvicorn server:app --reload --port 8001
 ```
 
