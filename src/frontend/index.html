@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flight Booking Assistant</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 25%, #0c4a6e 60%, #082f49 100%);
+      background-image: 
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:%230ea5e9;stop-opacity:0.3" /><stop offset="100%" style="stop-color:%23082f49;stop-opacity:0.6" /></linearGradient></defs><rect fill="url(%23sky)" width="1200" height="800"/><g opacity="0.15"><ellipse cx="200" cy="150" rx="80" ry="30" fill="white"/><ellipse cx="400" cy="200" rx="100" ry="35" fill="white"/><ellipse cx="700" cy="120" rx="90" ry="32" fill="white"/><ellipse cx="950" cy="180" rx="110" ry="38" fill="white"/></g><g transform="translate(650,400)" opacity="0.25"><path d="M-120,0 L-80,-8 L-40,-10 L40,-12 L80,-10 L120,-6 L140,0 L120,6 L80,10 L40,12 L-40,10 L-80,8 Z" fill="white"/><path d="M-50,-12 L-80,-40 L-60,-42 L-30,-14 Z" fill="white"/><path d="M50,-12 L80,-40 L60,-42 L30,-14 Z" fill="white"/><path d="M-100,0 L-140,25 L-125,28 L-95,5 Z" fill="white"/><ellipse cx="85" cy="0" rx="15" ry="8" fill="white"/><ellipse cx="-85" cy="0" rx="15" ry="8" fill="white"/><path d="M100,0 L150,20 L155,18 L145,8 L155,0 L145,-8 L155,-18 L150,-20 Z" fill="white" opacity="0.8"/></g></svg>'),
+        linear-gradient(135deg, #0ea5e9 0%, #0284c7 25%, #0c4a6e 60%, #082f49 100%);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: #f0f9ff;
+      padding: 16px;
+    }
+
+    .container {
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(240,249,255,0.95));
+      border-radius: 24px;
+      padding: 0;
+      width: 100%;
+      max-width: 1100px;
+      min-height: 85vh;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(14,165,233,0.2);
+      border: 1px solid rgba(14,165,233,0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navigation Bar */
+    .navbar {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .navbar h1 {
+      margin: 0;
+      color: white;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .nav-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-1px);
+    }
+
+    .nav-btn.active {
+      background: rgba(255,255,255,0.95);
+      color: #0284c7;
+      font-weight: 600;
+    }
+
+    .logout-nav-btn {
+      background: rgba(239,68,68,0.2);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .logout-nav-btn:hover {
+      background: rgba(239,68,68,0.3);
+    }
+
+    /* Page Content */
+    .page-content {
+      flex: 1;
+      padding: 32px;
+      overflow-y: auto;
+      color: #0c4a6e;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* Login Page */
+    .login-container {
+      max-width: 420px;
+      margin: 60px auto;
+      text-align: center;
+    }
+
+    .login-container h2 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      color: #0c4a6e;
+    }
+
+    .login-container .subtitle {
+      color: #0369a1;
+      margin-bottom: 32px;
+    }
+
+    .field {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    label {
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      display: block;
+      color: #0c4a6e;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(14,165,233,0.3);
+      background: rgba(255,255,255,0.95);
+      color: #0c4a6e;
+      font-size: 0.95rem;
+      transition: all 0.2s ease;
+    }
+
+    input::placeholder {
+      color: #0369a1;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14,165,233,0.15);
+      background: white;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 6px 16px rgba(14,165,233,0.3);
+    }
+
+    .btn:hover {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(14,165,233,0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .error {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: #dc2626;
+      min-height: 1em;
+    }
+
+    /* Profile Page */
+    .profile-card {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .profile-header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: white;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 24px rgba(14,165,233,0.3);
+    }
+
+    .profile-header h2 {
+      margin: 0 0 4px;
+      color: #0c4a6e;
+    }
+
+    .profile-header p {
+      color: #0369a1;
+      margin: 0;
+    }
+
+    .profile-form {
+      background: rgba(240,249,255,0.6);
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid rgba(14,165,233,0.2);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .edit-btn {
+      background: rgba(14,165,233,0.1);
+      color: #0284c7;
+      border: 1px solid rgba(14,165,233,0.3);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .edit-btn:hover {
+      background: rgba(14,165,233,0.2);
+    }
+
+    .save-btn {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(34,197,94,0.3);
+    }
+
+    .save-btn:hover {
+      background: linear-gradient(135deg, #4ade80, #22c55e);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(34,197,94,0.4);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* Chat Page */
+    .chat-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+      height: calc(85vh - 180px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: linear-gradient(to bottom, rgba(240,249,255,0.4), rgba(224,242,254,0.3));
+      border-radius: 16px;
+      border: 1px solid rgba(14,165,233,0.2);
+      margin-bottom: 16px;
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-row.bot {
+      justify-content: flex-start;
+    }
+
+    .message-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .message-row.user .message-avatar {
+      background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+      color: white;
+    }
+
+    .message-row.bot .message-avatar {
+      background: white;
+      border: 2px solid rgba(14,165,233,0.3);
+    }
+
+    .message-content {
+      display: flex;
+      flex-direction: column;
+      max-width: 70%;
+    }
+
+    .message-time {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 4px;
+      opacity: 0.7;
+    }
+
+    .message-row.user .message-time {
+      text-align: right;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 18px;
+      background: white;
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(14,165,233,0.15);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #94a3b8;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
+    .bubble {
+      padding: 12px 18px;
+      border-radius: 18px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      position: relative;
+    }
+
+    .bubble.user {
+      background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+      color: white;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+    }
+
+    .bubble.bot {
+      background: white;
+      color: #0c4a6e;
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(14,165,233,0.2);
+      box-shadow: 0 2px 8px rgba(14,165,233,0.1);
+    }
+
+    .bubble strong {
+      font-weight: 600;
+      color: #0284c7;
+    }
+
+    .bubble.user strong {
+      color: #f0f9ff;
+    }
+
+    .bubble code {
+      background: rgba(0,0,0,0.1);
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: 'Consolas', monospace;
+      font-size: 0.9em;
+    }
+
+    .bubble ul, .bubble ol {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+
+    .bubble li {
+      margin: 4px 0;
+    }
+
+    .chat-input-area {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .chat-input-area input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: 24px;
+    }
+
+    .send-btn {
+      padding: 12px 24px;
+      border-radius: 24px;
+      border: none;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+    }
+
+    .send-btn:hover {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(14,165,233,0.4);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Authorization buttons */
+    .auth-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .approve-btn, .deny-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .approve-btn {
+      background: #22c55e;
+      color: white;
+    }
+
+    .approve-btn:hover {
+      background: #16a34a;
+    }
+
+    .deny-btn {
+      background: #ef4444;
+      color: white;
+    }
+
+    .deny-btn:hover {
+      background: #dc2626;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bubble {
+        max-width: 85%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Navigation Bar (hidden on login page) -->
+    <div id="navbar" class="navbar hidden">
+      <h1>✈️ Flight Booking Assistant</h1>
+      <div class="nav-buttons">
+        <button class="nav-btn" id="nav-chat" onclick="showPage('chat')">
+          💬 Chat
+        </button>
+        <button class="nav-btn" id="nav-profile" onclick="showPage('profile')">
+          👤 Profile
+        </button>
+        <button class="nav-btn logout-nav-btn" onclick="logout()">
+          🚪 Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <!-- LOGIN PAGE -->
+      <div id="login-page" class="page active">
+        <div class="login-container">
+          <h2>✈️ Welcome Back</h2>
+          <p class="subtitle">Sign in to manage your flights</p>
+
+          <form id="login-form">
+            <div class="field">
+              <label>Email</label>
+              <input id="email" type="email" placeholder="john.doe@example.com" autocomplete="email" />
+            </div>
+
+            <div class="field">
+              <label>Password</label>
+              <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+            </div>
+
+            <div id="error-msg" class="error"></div>
+            <button class="btn" type="submit">Sign In</button>
+          </form>
+
+          <p style="margin-top: 24px; color: #0369a1; font-size: 0.85rem;">
+            Demo: john.doe@example.com / secret123
+          </p>
+        </div>
+      </div>
+
+      <!-- PROFILE PAGE -->
+      <div id="profile-page" class="page">
+        <div class="profile-card">
+          <div class="profile-header">
+            <div class="profile-avatar" id="profile-avatar">👤</div>
+            <h2 id="profile-name">John Doe</h2>
+            <p id="profile-email">john.doe@example.com</p>
+          </div>
+
+          <div class="profile-form">
+            <h3 style="margin-top: 0; color: #0c4a6e;">Personal Information</h3>
+            
+            <div class="form-row">
+              <div class="field">
+                <label>First Name</label>
+                <input type="text" id="first-name" disabled />
+              </div>
+              <div class="field">
+                <label>Last Name</label>
+                <input type="text" id="last-name" disabled />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Email</label>
+              <input type="email" id="profile-email-input" disabled />
+            </div>
+
+            <div class="field">
+              <label>Phone</label>
+              <input type="tel" id="phone" placeholder="+1 (555) 000-0000" disabled />
+            </div>
+
+            <div class="field">
+              <label>User ID</label>
+              <input type="text" id="user-id" disabled style="background: rgba(14,165,233,0.05);" />
+            </div>
+
+            <div class="button-group">
+              <button class="edit-btn" id="edit-btn" onclick="toggleEdit()">✏️ Edit Profile</button>
+              <button class="save-btn hidden" id="save-btn" onclick="saveProfile()">💾 Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHAT PAGE -->
+      <div id="chat-page" class="page">
+        <div class="chat-wrapper">
+          <div style="margin-bottom: 16px;">
+            <h2 style="margin: 0 0 4px; color: #0c4a6e;">Flight Assistant</h2>
+            <p style="margin: 0; color: #0369a1;">Ask me to search flights, manage bookings, or help with travel plans</p>
+          </div>
+
+          <div id="chat-messages" class="chat-messages"></div>
+
+          <form id="chat-form" class="chat-input-area">
+            <input id="chat-input" type="text" placeholder="Search flights from JFK to LAX..." />
+            <button class="send-btn" type="submit">
+              <span>✈</span> Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ----------------------------
+    // STATE & DEMO DATA
+    // ----------------------------
+    const DEMO_USER = {
+      user_id: "user_001",
+      email: "john.doe@example.com",
+      name: "John Doe",
+      password: "secret123",
+      phone: "+1 (555) 123-4567"
+    };
+
+    let currentUser = null;
+    let isEditing = false;
+    let chatSessionId = null;
+
+    // ----------------------------
+    // PAGE NAVIGATION
+    // ----------------------------
+    function showPage(pageName) {
+      // Hide all pages
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      
+      // Show selected page
+      document.getElementById(`${pageName}-page`).classList.add('active');
+      
+      // Update nav button states
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`nav-${pageName}`)?.classList.add('active');
+    }
+
+    function logout() {
+      currentUser = null;
+      chatSessionId = null;
+      localStorage.removeItem('user_info');
+      localStorage.removeItem('chat_session_id');
+      
+      document.getElementById('navbar').classList.add('hidden');
+      document.getElementById('chat-messages').innerHTML = '';
+      
+      showPage('login');
+    }
+
+    // ----------------------------
+    // LOGIN
+    // ----------------------------
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('error-msg');
+
+      if (email === DEMO_USER.email && password === DEMO_USER.password) {
+        currentUser = {
+          user_id: DEMO_USER.user_id,
+          email: DEMO_USER.email,
+          name: DEMO_USER.name,
+          phone: DEMO_USER.phone
+        };
+
+        // Store in localStorage
+        localStorage.setItem('user_info', JSON.stringify(currentUser));
+        chatSessionId = 'session_' + Date.now();
+        localStorage.setItem('chat_session_id', chatSessionId);
+
+        // Show navbar and go to chat
+        document.getElementById('navbar').classList.remove('hidden');
+        loadProfile();
+        showPage('chat');
+        
+        errorMsg.textContent = '';
+      } else {
+        errorMsg.textContent = 'Invalid email or password';
+      }
+    });
+
+    // ----------------------------
+    // PROFILE PAGE
+    // ----------------------------
+    function loadProfile() {
+      if (!currentUser) return;
+
+      const [firstName, ...lastNameParts] = currentUser.name.split(' ');
+      const lastName = lastNameParts.join(' ');
+
+      document.getElementById('profile-name').textContent = currentUser.name;
+      document.getElementById('profile-email').textContent = currentUser.email;
+      document.getElementById('profile-avatar').textContent = firstName.charAt(0) + (lastName.charAt(0) || '');
+      
+      document.getElementById('first-name').value = firstName;
+      document.getElementById('last-name').value = lastName;
+      document.getElementById('profile-email-input').value = currentUser.email;
+      document.getElementById('phone').value = currentUser.phone || '';
+      document.getElementById('user-id').value = currentUser.user_id;
+    }
+
+    function toggleEdit() {
+      isEditing = !isEditing;
+      
+      const inputs = ['first-name', 'last-name', 'phone'];
+      inputs.forEach(id => {
+        document.getElementById(id).disabled = !isEditing;
+      });
+
+      document.getElementById('edit-btn').classList.toggle('hidden');
+      document.getElementById('save-btn').classList.toggle('hidden');
+    }
+
+    function saveProfile() {
+      const firstName = document.getElementById('first-name').value;
+      const lastName = document.getElementById('last-name').value;
+      const phone = document.getElementById('phone').value;
+
+      currentUser.name = `${firstName} ${lastName}`.trim();
+      currentUser.phone = phone;
+
+      localStorage.setItem('user_info', JSON.stringify(currentUser));
+      
+      loadProfile();
+      toggleEdit();
+      
+      alert('Profile updated successfully!');
+    }
+
+    // ----------------------------
+    // CHAT FUNCTIONALITY
+    // ----------------------------
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+
+    function getTimeString() {
+      const now = new Date();
+      return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function scrollToBottom() {
+      setTimeout(() => {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }, 100);
+    }
+
+    function showTypingIndicator() {
+      const typingRow = document.createElement('div');
+      typingRow.className = 'message-row bot';
+      typingRow.id = 'typing-indicator';
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      avatar.textContent = '✈️';
+      
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'typing-indicator';
+      
+      for (let i = 0; i < 3; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'typing-dot';
+        typingDiv.appendChild(dot);
+      }
+      
+      typingRow.appendChild(avatar);
+      typingRow.appendChild(typingDiv);
+      chatMessages.appendChild(typingRow);
+      scrollToBottom();
+    }
+
+    function removeTypingIndicator() {
+      const typing = document.getElementById('typing-indicator');
+      if (typing) typing.remove();
+    }
+
+    function addMessage(text, sender = 'user') {
+      const messageRow = document.createElement('div');
+      messageRow.className = `message-row ${sender}`;
+
+      // Add avatar
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      avatar.textContent = sender === 'user' ? '👤' : '✈️';
+      
+      // Create message content wrapper
+      const messageContent = document.createElement('div');
+      messageContent.className = 'message-content';
+      
+      // Add bubble
+      const bubble = document.createElement('div');
+      bubble.className = `bubble ${sender}`;
+      
+      if (sender === 'bot') {
+        bubble.innerHTML = formatBotMessage(text);
+      } else {
+        bubble.textContent = text;
+      }
+      
+      // Add timestamp
+      const timeDiv = document.createElement('div');
+      timeDiv.className = 'message-time';
+      timeDiv.textContent = getTimeString();
+      
+      messageContent.appendChild(bubble);
+      messageContent.appendChild(timeDiv);
+      
+      messageRow.appendChild(avatar);
+      messageRow.appendChild(messageContent);
+      chatMessages.appendChild(messageRow);
+      
+      scrollToBottom();
+    }
+
+    function formatBotMessage(text) {
+      // Bold (**text**)
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      
+      // Inline code (`code`)
+      text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+      
+      // Bullet points
+      text = text.replace(/^- (.+)$/gm, '<li>$1</li>');
+      text = text.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+      
+      return text;
+    }
+
+    function addAuthorizationButtons(toolName, toolArgs, messageElement) {
+      const authDiv = document.createElement('div');
+      authDiv.className = 'auth-buttons';
+      
+      const approveBtn = document.createElement('button');
+      approveBtn.className = 'approve-btn';
+      approveBtn.textContent = '✓ Approve';
+      approveBtn.onclick = () => executeToolCall(toolName, toolArgs, authDiv, messageElement);
+      
+      const denyBtn = document.createElement('button');
+      denyBtn.className = 'deny-btn';
+      denyBtn.textContent = '✗ Deny';
+      denyBtn.onclick = () => {
+        authDiv.remove();
+        addMessage('Tool execution denied by user.', 'bot');
+      };
+      
+      authDiv.appendChild(approveBtn);
+      authDiv.appendChild(denyBtn);
+      messageElement.appendChild(authDiv);
+    }
+
+    async function executeToolCall(toolName, toolArgs, authDiv, messageElement) {
+      authDiv.remove();
+      
+      try {
+        const userSessionId = localStorage.getItem('chat_session_id');
+        const userInfo = JSON.parse(localStorage.getItem('user_info'));
+
+        const response = await fetch('http://localhost:8001/execute_tool', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tool_name: toolName,
+            tool_args: toolArgs,
+            user_session_id: userSessionId,
+            user_info: userInfo
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.error) {
+          addMessage(`Error: ${data.error}`, 'bot');
+        } else {
+          addMessage(data.reply, 'bot');
+        }
+      } catch (error) {
+        addMessage(`Error executing tool: ${error.message}`, 'bot');
+      }
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      addMessage(text, 'user');
+      chatInput.value = '';
+      showTypingIndicator();
+
+      try {
+        const userSessionId = localStorage.getItem('chat_session_id');
+        const userInfo = JSON.parse(localStorage.getItem('user_info'));
+
+        console.log('Sending user info:', userInfo);
+
+        const response = await fetch('http://localhost:8001/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            user_session_id: userSessionId,
+            user_info: userInfo
+          })
+        });
+
+        const data = await response.json();
+        removeTypingIndicator();
+
+        if (data.error) {
+          addMessage(`Error: ${data.error}`, 'bot');
+        } else if (data.needs_authorization && data.tool_request) {
+          const toolName = data.tool_request.tool_name;
+          const toolArgs = data.tool_request.tool_args;
+          
+          const botMessageRow = document.createElement('div');
+          botMessageRow.className = 'message-row bot';
+          
+          // Add avatar
+          const avatar = document.createElement('div');
+          avatar.className = 'message-avatar';
+          avatar.textContent = '✈️';
+          
+          // Create message content wrapper
+          const messageContent = document.createElement('div');
+          messageContent.className = 'message-content';
+          
+          const botBubble = document.createElement('div');
+          botBubble.className = 'bubble bot';
+          botBubble.innerHTML = `<strong>Tool Call Required:</strong> ${toolName}<br><code>${JSON.stringify(toolArgs, null, 2)}</code>`;
+          
+          // Add timestamp
+          const timeDiv = document.createElement('div');
+          timeDiv.className = 'message-time';
+          timeDiv.textContent = getTimeString();
+          
+          messageContent.appendChild(botBubble);
+          messageContent.appendChild(timeDiv);
+          
+          botMessageRow.appendChild(avatar);
+          botMessageRow.appendChild(messageContent);
+          chatMessages.appendChild(botMessageRow);
+          
+          addAuthorizationButtons(toolName, toolArgs, messageContent);
+          scrollToBottom();
+        } else {
+          addMessage(data.reply, 'bot');
+        }
+      } catch (error) {
+        removeTypingIndicator();
+        addMessage(`Error: ${error.message}`, 'bot');
+      }
+    });
+
+    // ----------------------------
+    // INITIALIZATION
+    // ----------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      // Check if user is already logged in
+      const storedUser = localStorage.getItem('user_info');
+      const storedSession = localStorage.getItem('chat_session_id');
+      
+      if (storedUser && storedSession) {
+        currentUser = JSON.parse(storedUser);
+        chatSessionId = storedSession;
+        
+        document.getElementById('navbar').classList.remove('hidden');
+        loadProfile();
+        showPage('chat');
+      }
+    });
+  </script>
+</body>
+</html>
