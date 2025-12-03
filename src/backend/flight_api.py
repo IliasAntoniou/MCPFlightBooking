@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Query, HTTPException
-from typing import List, Dict, Any
+from pydantic import BaseModel
+from typing import List, Dict, Any, Optional
 import datetime
 import time
 import random
@@ -13,6 +14,10 @@ from db import (
     count_flights,
     bulk_insert_flights,
     generate_flights,
+    create_booking,
+    get_booking,
+    get_bookings_by_user,
+    update_booking_status,
 )
 
 app = FastAPI(title="Flight API (DB-backed)")
@@ -102,3 +107,151 @@ def get_flight_by_id(flight_id: str) -> Dict[str, Any]:
         raise HTTPException(status_code=404, detail="Flight not found")
 
     return dict(row)
+
+
+# ---------------------------
+# Booking Request Models
+# ---------------------------
+
+class BookingCreateRequest(BaseModel):
+    user_id: str
+    flight_id: str
+    passenger_name: str
+    passenger_email: str
+    seats: int = 1
+    status: str = "CONFIRMED"
+    hold_minutes: Optional[int] = None
+
+
+class BookingUpdateRequest(BaseModel):
+    status: str
+    cancellation_reason: Optional[str] = None
+
+
+# ---------------------------
+# Booking Endpoints
+# ---------------------------
+
+@app.post("/bookings")
+def create_booking_endpoint(booking: BookingCreateRequest) -> Dict[str, Any]:
+    """
+    Create a new flight booking.
+    
+    Example:
+    POST /bookings
+    {
+      "user_id": "user_001",
+      "flight_id": "FL-001234",
+      "passenger_name": "John Doe",
+      "passenger_email": "john@example.com",
+      "seats": 1,
+      "status": "CONFIRMED"
+    }
+    """
+    # Simulate network latency
+    time.sleep(random.uniform(0.1, 0.3))
+    
+    try:
+        result = create_booking(
+            user_id=booking.user_id,
+            flight_id=booking.flight_id,
+            passenger_name=booking.passenger_name,
+            passenger_email=booking.passenger_email,
+            seats=booking.seats,
+            status=booking.status,
+            hold_minutes=booking.hold_minutes
+        )
+        
+        if "error" in result:
+            raise HTTPException(status_code=400, detail=result["error"])
+        
+        return result
+    except ValueError as e:
+        # Handle insufficient seats or other validation errors
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/bookings/{booking_id}")
+def get_booking_endpoint(booking_id: str) -> Dict[str, Any]:
+    """
+    Get a single booking by ID.
+    
+    Example:
+    GET /bookings/BK-abc123
+    """
+    # Simulate network latency
+    time.sleep(random.uniform(0.1, 0.3))
+    
+    booking = get_booking(booking_id)
+    
+    if booking is None:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    return booking
+
+
+@app.get("/bookings")
+def get_user_bookings_endpoint(user_id: str = Query(...)) -> List[Dict[str, Any]]:
+    """
+    Get all bookings for a specific user.
+    
+    Example:
+    GET /bookings?user_id=user_001
+    """
+    # Simulate network latency
+    time.sleep(random.uniform(0.1, 0.3))
+    
+    bookings = get_bookings_by_user(user_id)
+    return bookings
+
+
+@app.put("/bookings/{booking_id}")
+def update_booking_endpoint(
+    booking_id: str,
+    update: BookingUpdateRequest
+) -> Dict[str, Any]:
+    """
+    Update a booking's status (confirm, cancel, etc).
+    
+    Example:
+    PUT /bookings/BK-abc123
+    {
+      "status": "CANCELLED",
+      "cancellation_reason": "Customer requested"
+    }
+    """
+    # Simulate network latency
+    time.sleep(random.uniform(0.1, 0.3))
+    
+    result = update_booking_status(
+        booking_id=booking_id,
+        new_status=update.status,
+        cancellation_reason=update.cancellation_reason
+    )
+    
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@app.delete("/bookings/{booking_id}")
+def delete_booking_endpoint(booking_id: str) -> Dict[str, Any]:
+    """
+    Delete a booking by ID and restore the seats to the flight.
+    This is used for cancellations - the booking record is completely removed.
+    
+    Example:
+    DELETE /bookings/BK-abc123
+    """
+    # Simulate network latency
+    time.sleep(random.uniform(0.1, 0.3))
+    
+    from db import delete_booking
+    
+    success = delete_booking(booking_id)
+    
+    if not success:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    return {"success": True, "message": "Booking cancelled and seats restored"}

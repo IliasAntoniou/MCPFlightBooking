@@ -1,72 +1,48 @@
 # MCPFlightBooking
 
-An AI-powered flight booking application that demonstrates the Model Context Protocol (MCP) by integrating multiple MCP servers with a conversational AI interface powered by Google Gemini. The system features a web-based chat interface where users can search flights, manage bookings, and interact naturally with an AI assistant that has access to flight data through MCP tools.
+An AI-powered flight booking application demonstrating the Model Context Protocol (MCP). Users interact with a conversational AI assistant through a web interface to search flights and manage bookings. The system integrates Google Gemini with MCP servers to provide natural language access to flight data and booking operations.
 
 ## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │ Web Frontend (index.html)                          │
-│ - Aviation-themed UI with chat interface          │
-│ - User authentication & profile management        │
-│ - Tool authorization (approve/deny actions)       │
+│ - Chat interface & user authentication             │
+│ - Tool authorization (approve/deny actions)        │
 └────────────────────┬────────────────────────────────┘
-                     │ HTTP/REST
+                     │ HTTP
                      ↓
 ┌─────────────────────────────────────────────────────┐
-│ Backend Server (server.py)                         │
-│ - GeminiMCPHost: Manages MCP client connections   │
-│ - Conversation history & session management        │
-│ - Tool authorization & execution flow              │
-│ - Gemini API integration for natural language     │
+│ Backend Server (server.py) - Port 8001            │
+│ - Gemini AI + MCP client host                     │
+│ - Conversation & session management                │
 └────────────────────┬────────────────────────────────┘
-                     │ MCP Protocol (JSON-RPC over STDIO)
+                     │ MCP Protocol (STDIO)
          ┌───────────┴──────────────┐
          │                          │
 ┌────────▼─────────┐      ┌────────▼──────────┐
-│ MCP Server       │      │ MCP Server        │
 │ flightsearch.py  │      │ flightbooking.py  │
-│ - search_flights │      │ - book_flight     │
-│ - getflightbyid  │      │ - hold_flight     │
-└────────┬─────────┘      │ - confirm_held    │
-         │                │ - cancel_booking  │
-         │                │ - get_bookings    │
-         │                │ - get_user_bkgs   │
-         │                └───────────────────┘
-         │ HTTP API
-         ↓
+│ MCP Server       │      │ MCP Server        │
+└────────┬─────────┘      └───────┬───────────┘
+         │ HTTP                    │ HTTP
+         └────────────┬────────────┘
+                      ↓
 ┌─────────────────────────────────────────────────────┐
-│ Flight API (flight_api.py)                         │
-│ - SQLite database with 100,000 flights            │
-│ - Flight search & retrieval endpoints             │
-│ - Booking management                               │
+│ Flight API (flight_api.py) - Port 8000            │
+│ - SQLite database (100k flights, seat tracking)   │
+│ - REST endpoints for search & booking              │
 └─────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Features
+## ✨ Key Features
 
-### Conversational AI Interface
-- Natural language interaction with flight booking system
-- Context-aware responses using conversation history
-- User authentication with profile management
-- Real-time chat with typing indicators and avatars
-
-### MCP Integration
-- **Two MCP Servers**: Flight search and booking management
-- **Tool Discovery**: Dynamic tool listing via MCP protocol
-- **Tool Execution**: Secure tool calls through MCP sessions
-- **Multi-Server Support**: Seamless integration of multiple MCP servers
-
-### User Safety & Transparency
-- **Tool Authorization**: Users approve/deny AI actions before execution
-- **Visual Feedback**: Clear display of tool calls with arguments
-- **Session Management**: Persistent conversation history per user
-
-### Database
-- SQLite database with 100,000 pre-generated flights
-- Flight search by origin, destination, and date
-- Booking status management (CONFIRMED, HELD, CANCELLED)
-- User booking history
+- **Natural Language Interface**: Chat with AI to search and book flights
+- **MCP Integration**: Two MCP servers (search & booking) using JSON-RPC over STDIO
+- **Tool Authorization**: Users approve AI actions before execution
+- **Seat Management**: Real-time tracking with 100 seats per flight, prevents overbooking
+- **User Authentication**: Profile management with persistent sessions
+- **100,000 Flights**: Pre-generated SQLite database with realistic flight data
+- **Context Awareness**: AI understands conversation history and current date/time
 
 ## 📁 Project Structure
 
@@ -186,96 +162,35 @@ start src/frontend/index.html
 
 4. **Manage your profile** via the profile page
 
-## 🔧 MCP Servers
+## 🔧 MCP Tools
 
-### `flightsearch.py`
+**Flight Search** (`flightsearch.py`)
+- `search_flights` - Find flights by origin, destination, and date
+- `getflightbyid` - Get details for a specific flight
+- Features: LRU caching, input validation, structured logging
 
-**Purpose**: Provides flight search capabilities through MCP protocol
+**Flight Booking** (`flightbooking.py`)
+- `book_flight` - Create confirmed booking (checks seat availability)
+- `hold_flight` - Temporary hold with expiration
+- `confirm_held_booking` - Convert hold to confirmed booking
+- `cancel_booking` - Delete booking and restore seats
+- `get_booking_details` - View booking information
+- `get_user_bookings` - List all user bookings
+- Features: Atomic seat updates, overbooking prevention, hold expiration tracking
 
-**Tools:**
-- `search_flights(origin: str, destination: str, date: str)` - Search flights by criteria
-- `getflightbyid(flight_id: str)` - Get specific flight details
+## 🔒 How It Works
 
-**Features:**
-- In-memory caching for improved performance
-- Detailed logging to `flightsearch.log`
-- HTTP API integration with backend
+1. User sends message via web interface
+2. Gemini AI determines if tool execution is needed
+3. User approves/denies tool call
+4. MCP server executes tool and returns result
+5. AI formats response and displays to user
 
-### `flightbooking.py`
+All tool executions require explicit user approval for safety.
 
-**Purpose**: Manages flight bookings and reservations
+## 📝 Notes
 
-**Tools:**
-- `book_flight(user_id, flight_id, passenger_name, passenger_email, seats)` - Create confirmed booking
-- `hold_flight(user_id, flight_id, passenger_name, passenger_email, seats, hold_minutes)` - Temporary hold
-- `confirm_held_booking(booking_id)` - Confirm a held booking
-- `cancel_booking(booking_id, reason)` - Cancel existing booking
-- `get_booking_details(booking_id)` - Retrieve booking information
-- `get_user_bookings(user_id)` - Get all bookings for a user
-
-**Features:**
-- Direct database integration
-- Booking status management (CONFIRMED, HELD, CANCELLED)
-- Expiration tracking for held bookings
-
-## 🎯 Key Components
-
-### GeminiMCPHost Class
-The core orchestrator that:
-- Connects to multiple MCP servers via STDIO transport
-- Manages MCP client sessions
-- Integrates with Gemini API for natural language understanding
-- Handles tool discovery and execution
-- Manages conversation context
-
-### Tool Authorization Flow
-1. User sends message
-2. Gemini determines if tool call is needed
-3. System requests user approval with tool details
-4. User approves/denies
-5. If approved, tool executes via MCP
-6. Result formatted by Gemini and returned to user
-
-## 🔒 Security Features
-
-- User authentication required
-- Tool authorization before execution
-- Session-based conversation isolation
-- User info validation
-- Error handling and logging
-
-## 🧪 Testing
-
-Example queries to test the system:
-```
-"Search for flights from ATH to LHR on 2025-12-15"
-"Show me my bookings"
-"Book flight FL-001234 for Jane Smith (jane@example.com)"
-"Cancel booking BK-123456"
-"Hold flight FL-005678 for 30 minutes"
-```
-
-## 📊 Database Schema
-
-**Flights Table:**
-- id, origin, destination, date, airline, price
-
-**Bookings Table:**
-- id, user_id, flight_id, passenger_name, passenger_email
-- seats, status, created_at, updated_at
-- hold_expires_at, cancellation_reason
-
-## 🤝 Contributing
-
-This is a thesis project demonstrating MCP integration with AI applications.
-
-## 📝 License
-
-See LICENSE file for details.
-
-## 👨‍💻 Author
-
-Ilias Antoniou - Thesis Project
+This is a thesis project demonstrating Model Context Protocol integration with conversational AI for flight booking operations.
 
 ## 🔗 Resources
 

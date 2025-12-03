@@ -159,10 +159,17 @@ RESPONSE FORMATTING (for non-tool answers):
 - Be clear and concise
         """.strip()
 
+        # Get current date and time
+        from datetime import datetime
+        now = datetime.now()
+        current_date = now.strftime("%A, %B %d, %Y")
+        current_time = now.strftime("%I:%M %p")
+        
         # Build user info context
-        user_context = ""
+        user_context = f"\n\nCurrent date and time: {current_date} at {current_time}"
+        
         if user_info and "user_id" in user_info:
-            user_context = f"\n\nLogged-in user information:\n- User ID: {user_info.get('user_id', 'N/A')}\n- Name: {user_info.get('name', 'N/A')}\n- Email: {user_info.get('email', 'N/A')}\n\nIMPORTANT: When the user asks about \"my bookings\" or \"my flights\", automatically use the User ID '{user_info.get('user_id')}' to call get_user_bookings. When booking flights, use the name '{user_info.get('name')}' and email '{user_info.get('email')}' automatically unless the user specifies different passenger details."
+            user_context += f"\n\nLogged-in user information:\n- User ID: {user_info.get('user_id', 'N/A')}\n- Name: {user_info.get('name', 'N/A')}\n- Email: {user_info.get('email', 'N/A')}\n\nIMPORTANT: When the user asks about \"my bookings\" or \"my flights\", automatically use the User ID '{user_info.get('user_id')}' to call get_user_bookings. When booking flights, use the name '{user_info.get('name')}' and email '{user_info.get('email')}' automatically unless the user specifies different passenger details."
             print(f"👤 User info available: {user_info}")
 
         # Build conversation context

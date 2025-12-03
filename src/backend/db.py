@@ -37,7 +37,7 @@ def init_db() -> None:
     """
     conn = get_conn()
     try:
-        # Flights table
+        # Flights table with seat capacity tracking
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS flights (
@@ -46,7 +46,8 @@ def init_db() -> None:
                 destination TEXT NOT NULL,
                 date TEXT NOT NULL,       -- YYYY-MM-DD
                 airline TEXT NOT NULL,
-                price REAL NOT NULL
+                price REAL NOT NULL,
+                available_seats INTEGER NOT NULL DEFAULT 100
             )
             """
         )
@@ -92,17 +93,65 @@ def count_flights() -> int:
         conn.close()
 
 
+def check_seat_availability(flight_id: str, seats_requested: int) -> Dict[str, Any]:
+    """
+    Check if a flight has enough available seats.
+    Returns dict with 'available' (bool) and 'seats_remaining' (int).
+    """
+    conn = get_conn()
+    try:
+        cur = conn.execute(
+            "SELECT available_seats FROM flights WHERE id = ?",
+            (flight_id,)
+        )
+        row = cur.fetchone()
+        if not row:
+            return {"available": False, "seats_remaining": 0, "error": "Flight not found"}
+        
+        seats_remaining = int(row["available_seats"])
+        return {
+            "available": seats_remaining >= seats_requested,
+            "seats_remaining": seats_remaining
+        }
+    finally:
+        conn.close()
+
+
+def update_flight_seats(flight_id: str, seats_delta: int) -> bool:
+    """
+    Update available seats for a flight by adding seats_delta.
+    Use negative delta to decrease seats (booking).
+    Use positive delta to increase seats (cancellation).
+    Returns True if successful, False if flight not found.
+    This operation is atomic within a transaction.
+    """
+    conn = get_conn()
+    try:
+        cur = conn.execute(
+            """
+            UPDATE flights 
+            SET available_seats = available_seats + ? 
+            WHERE id = ?
+            """,
+            (seats_delta, flight_id)
+        )
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 def bulk_insert_flights(flights: List[Dict[str, Any]]) -> None:
     """
     Insert a list of flight dicts into the flights table.
-    Each dict must have keys: id, origin, destination, date, airline, price.
+    Each dict must have keys: id, origin, destination, date, airline, price, available_seats.
     """
     conn = get_conn()
     try:
         conn.executemany(
             """
-            INSERT INTO flights (id, origin, destination, date, airline, price)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO flights (id, origin, destination, date, airline, price, available_seats)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 (
@@ -112,6 +161,7 @@ def bulk_insert_flights(flights: List[Dict[str, Any]]) -> None:
                     f["date"],
                     f["airline"],
                     f["price"],
+                    f.get("available_seats", 100),
                 )
                 for f in flights
             ],
@@ -148,6 +198,7 @@ def generate_flights(num_flights: int) -> List[Dict[str, Any]]:
                 "date": date.isoformat(),
                 "airline": airline,
                 "price": price,
+                "available_seats": 100,
             }
         )
         current_id += 1
@@ -195,8 +246,21 @@ def create_booking(
     hold_minutes: Optional[int] = None,
 ) -> Dict[str, Any]:
     """
-    Insert a new booking row and return it as a dict.
+    Create a new booking and atomically update flight seat availability.
+    
+    Validates seat availability before creating the booking. If sufficient seats
+    are available, creates the booking and decrements available seats in a single
+    transaction. Raises ValueError if insufficient seats or flight not found.
     """
+    # Check seat availability first
+    availability = check_seat_availability(flight_id, seats)
+    if not availability["available"]:
+        if "error" in availability:
+            raise ValueError(availability["error"])
+        raise ValueError(
+            f"Not enough seats available. This flight has only {availability['seats_remaining']} seats remaining."
+        )
+    
     booking_id = f"BK-{uuid4().hex[:10].upper()}"
     now = _now_iso()
 
@@ -208,6 +272,7 @@ def create_booking(
 
     conn = get_conn()
     try:
+        # Start transaction - create booking and update seats atomically
         conn.execute(
             """
             INSERT INTO bookings (
@@ -231,10 +296,24 @@ def create_booking(
                 None,
             ),
         )
+        
+        # Decrease available seats (negative delta)
+        conn.execute(
+            """
+            UPDATE flights 
+            SET available_seats = available_seats - ? 
+            WHERE id = ?
+            """,
+            (seats, flight_id)
+        )
+        
         conn.commit()
 
         cur = conn.execute("SELECT * FROM bookings WHERE id = ?", (booking_id,))
         row = cur.fetchone()
+    except Exception as e:
+        conn.rollback()
+        raise e
     finally:
         conn.close()
 
@@ -309,3 +388,47 @@ def update_booking_status(
     if row is None:
         return None
     return dict(row)
+
+
+def delete_booking(booking_id: str) -> bool:
+    """
+    Delete a booking and atomically restore seats to the flight.
+    
+    Returns True if booking was deleted, False if booking not found.
+    The deletion and seat restoration occur in a single transaction.
+    """
+    conn = get_conn()
+    try:
+        # First, get the booking to find out how many seats to restore
+        cur = conn.execute(
+            "SELECT flight_id, seats FROM bookings WHERE id = ?",
+            (booking_id,)
+        )
+        row = cur.fetchone()
+        
+        if not row:
+            return False
+        
+        flight_id = row["flight_id"]
+        seats = int(row["seats"])
+        
+        # Delete the booking and restore seats atomically
+        conn.execute("DELETE FROM bookings WHERE id = ?", (booking_id,))
+        
+        # Restore seats (positive delta)
+        conn.execute(
+            """
+            UPDATE flights 
+            SET available_seats = available_seats + ? 
+            WHERE id = ?
+            """,
+            (seats, flight_id)
+        )
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()

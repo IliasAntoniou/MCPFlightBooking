@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Flight Booking Assistant</title>
+  <title>MCP Flight Booking Assistant</title>
 
   <style>
     * {
@@ -33,7 +33,7 @@
       padding: 0;
       width: 100%;
       max-width: 1100px;
-      min-height: 85vh;
+      min-height: 95vh;
       box-shadow: 0 24px 80px rgba(0,0,0,0.3), 0 0 0 1px rgba(14,165,233,0.2);
       border: 1px solid rgba(14,165,233,0.3);
       overflow: hidden;
@@ -293,7 +293,7 @@
     .chat-wrapper {
       max-width: 900px;
       margin: 0 auto;
-      height: calc(85vh - 180px);
+      height: calc(95vh - 140px);
       display: flex;
       flex-direction: column;
     }
@@ -468,6 +468,8 @@
       display: flex;
       gap: 12px;
       align-items: center;
+      margin-top: auto;
+      padding-top: 16px;
     }
 
     .chat-input-area input {
@@ -552,7 +554,7 @@
   <div class="container">
     <!-- Navigation Bar (hidden on login page) -->
     <div id="navbar" class="navbar hidden">
-      <h1>✈️ Flight Booking Assistant</h1>
+      <h1>✈️ MCP Flight Booking Assistant</h1>
       <div class="nav-buttons">
         <button class="nav-btn" id="nav-chat" onclick="showPage('chat')">
           💬 Chat
@@ -652,7 +654,7 @@
           <div id="chat-messages" class="chat-messages"></div>
 
           <form id="chat-form" class="chat-input-area">
-            <input id="chat-input" type="text" placeholder="Search flights from JFK to LAX..." />
+            <input id="chat-input" type="text" placeholder="Ask me anything..." />
             <button class="send-btn" type="submit">
               <span>✈</span> Send
             </button>
@@ -870,6 +872,7 @@
       chatMessages.appendChild(messageRow);
       
       scrollToBottom();
+      return messageRow;
     }
 
     function formatBotMessage(text) {
@@ -911,6 +914,44 @@
     async function executeToolCall(toolName, toolArgs, authDiv, messageElement) {
       authDiv.remove();
       
+      // Show animated "Executing tool..." indicator
+      const executingRow = document.createElement('div');
+      executingRow.className = 'message-row bot';
+      executingRow.id = 'executing-indicator';
+      
+      const avatar = document.createElement('div');
+      avatar.className = 'message-avatar';
+      avatar.textContent = '✈️';
+      
+      const executingDiv = document.createElement('div');
+      executingDiv.className = 'typing-indicator';
+      executingDiv.style.background = 'white';
+      executingDiv.style.padding = '12px 18px';
+      executingDiv.style.borderRadius = '18px';
+      executingDiv.style.display = 'flex';
+      executingDiv.style.alignItems = 'center';
+      executingDiv.style.gap = '8px';
+      executingDiv.style.color = '#0c4a6e';
+      executingDiv.style.fontWeight = '500';
+      executingDiv.style.border = '1px solid rgba(14,165,233,0.2)';
+      executingDiv.style.boxShadow = '0 2px 8px rgba(14,165,233,0.1)';
+      
+      const textSpan = document.createElement('span');
+      textSpan.textContent = '⚙️ Executing tool';
+      executingDiv.appendChild(textSpan);
+      
+      for (let i = 0; i < 3; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'typing-dot';
+        dot.style.background = '#0ea5e9';
+        executingDiv.appendChild(dot);
+      }
+      
+      executingRow.appendChild(avatar);
+      executingRow.appendChild(executingDiv);
+      chatMessages.appendChild(executingRow);
+      scrollToBottom();
+      
       try {
         const userSessionId = localStorage.getItem('chat_session_id');
         const userInfo = JSON.parse(localStorage.getItem('user_info'));
@@ -928,12 +969,17 @@
 
         const data = await response.json();
         
+        // Remove executing indicator
+        executingRow.remove();
+        
         if (data.error) {
           addMessage(`Error: ${data.error}`, 'bot');
         } else {
           addMessage(data.reply, 'bot');
         }
       } catch (error) {
+        // Remove executing indicator on error
+        executingRow.remove();
         addMessage(`Error executing tool: ${error.message}`, 'bot');
       }
     }
