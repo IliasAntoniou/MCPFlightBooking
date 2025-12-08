@@ -72,7 +72,7 @@ class BookingValidation(BaseModel):
 
 class BookingIdValidation(BaseModel):
     """Validation model for booking ID."""
-    booking_id: str = Field(..., pattern=r'^BK-[a-f0-9]+$')
+    booking_id: str = Field(..., pattern=r'^BK-[A-F0-9]{10}$')
 
 
 def validate_booking_input(
@@ -115,7 +115,7 @@ def validate_booking_id(booking_id: str) -> tuple[bool, Optional[str]]:
         BookingIdValidation(booking_id=booking_id)
         return True, None
     except Exception:
-        return False, "Invalid booking ID format. Booking ID should be in format BK-XXXXX (e.g., BK-abc123)."
+        return False, "Invalid booking ID format. Booking ID must be in format BK-XXXXXXXXXX (e.g., BK-97C72D61EF)."
 
 
 # -------------------------
@@ -544,13 +544,13 @@ async def hold_flight(
 
 
 @mcp.tool()
-async def confirm_held_booking(booking_id: str) -> str:
+async def confirm_held_booking(booking_id: str, user_id: str) -> str:
     """
-    Turn a HELD booking into a CONFIRMED booking.
+    Turn a HELD booking into a CONFIRMED booking (only your own bookings).
     """
     logger.info(
         "confirm_held_booking tool called",
-        extra={"tool": "confirm_held_booking", "booking_id": booking_id}
+        extra={"tool": "confirm_held_booking", "booking_id": booking_id, "user_id": user_id}
     )
 
     # Validate booking ID format
@@ -569,6 +569,20 @@ async def confirm_held_booking(booking_id: str) -> str:
             extra={"tool": "confirm_held_booking", "booking_id": booking_id}
         )
         return f"❌ No booking found with ID {booking_id}. Please check the booking ID and try again."
+
+    # Verify ownership
+    booking_owner = booking.get("user_id")
+    if booking_owner != user_id:
+        logger.warning(
+            "Unauthorized confirmation attempt",
+            extra={
+                "tool": "confirm_held_booking",
+                "booking_id": booking_id,
+                "requesting_user": user_id,
+                "booking_owner": booking_owner
+            }
+        )
+        return f"❌ Access Denied: You don't have permission to confirm this booking. This booking belongs to a different user."
 
     if booking.get("status") != "HELD":
         return f"❌ Cannot confirm: Booking {booking_id} is not on hold (current status: {booking.get('status')})."
@@ -598,21 +612,22 @@ async def confirm_held_booking(booking_id: str) -> str:
 
     logger.info(
         "Booking confirmed successfully",
-        extra={"tool": "confirm_held_booking", "booking_id": booking_id}
+        extra={"tool": "confirm_held_booking", "booking_id": booking_id, "user_id": user_id}
     )
     return "✅ Booking Confirmed!\n\n" + format_booking(updated)
 
 
 @mcp.tool()
-async def cancel_booking(booking_id: str, reason: Optional[str] = None) -> str:
+async def cancel_booking(booking_id: str, user_id: str, reason: Optional[str] = None) -> str:
     """
-    Cancel an existing booking.
+    Cancel an existing booking (only your own bookings).
     """
     logger.info(
         "cancel_booking tool called",
         extra={
             "tool": "cancel_booking",
             "booking_id": booking_id,
+            "user_id": user_id,
             "reason": reason
         }
     )
@@ -634,6 +649,20 @@ async def cancel_booking(booking_id: str, reason: Optional[str] = None) -> str:
         )
         return f"❌ No booking found with ID {booking_id}. Please check the booking ID and try again."
 
+    # Verify ownership
+    booking_owner = booking.get("user_id")
+    if booking_owner != user_id:
+        logger.warning(
+            "Unauthorized cancellation attempt",
+            extra={
+                "tool": "cancel_booking",
+                "booking_id": booking_id,
+                "requesting_user": user_id,
+                "booking_owner": booking_owner
+            }
+        )
+        return f"❌ Access Denied: You don't have permission to cancel this booking. This booking belongs to a different user."
+
     current_status = booking.get("status")
 
     # Delete the booking (this will also restore seats to the flight)
@@ -646,6 +675,7 @@ async def cancel_booking(booking_id: str, reason: Optional[str] = None) -> str:
         extra={
             "tool": "cancel_booking",
             "booking_id": booking_id,
+            "user_id": user_id,
             "previous_status": current_status,
             "reason": reason
         }
@@ -669,13 +699,13 @@ Previous Status: {current_status}
 
 
 @mcp.tool()
-async def get_booking_details(booking_id: str) -> str:
+async def get_booking_details(booking_id: str, user_id: str) -> str:
     """
-    Retrieve details of a booking by its ID.
+    Retrieve details of a booking by its ID (only your own bookings).
     """
     logger.info(
         "get_booking_details tool called",
-        extra={"tool": "get_booking_details", "booking_id": booking_id}
+        extra={"tool": "get_booking_details", "booking_id": booking_id, "user_id": user_id}
     )
 
     # Validate booking ID format
@@ -694,6 +724,20 @@ async def get_booking_details(booking_id: str) -> str:
             extra={"tool": "get_booking_details", "booking_id": booking_id}
         )
         return f"❌ No booking found with ID {booking_id}. Please check the booking ID and try again."
+
+    # Verify ownership
+    booking_owner = booking.get("user_id")
+    if booking_owner != user_id:
+        logger.warning(
+            "Unauthorized access attempt",
+            extra={
+                "tool": "get_booking_details",
+                "booking_id": booking_id,
+                "requesting_user": user_id,
+                "booking_owner": booking_owner
+            }
+        )
+        return f"❌ Access Denied: You don't have permission to view this booking. This booking belongs to a different user."
 
     return format_booking(booking)
 
