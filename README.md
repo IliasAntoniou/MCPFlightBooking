@@ -6,31 +6,31 @@ An AI-powered flight booking application demonstrating the Model Context Protoco
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ Web Frontend (index.html)                          │
-│ - Chat interface & user authentication             │
-│ - Tool authorization (approve/deny actions)        │
+│ Web Frontend (index.html)                           │
+│ - Chat interface & user authentication              │
+│ - Tool authorization (approve/deny actions)         │
 └────────────────────┬────────────────────────────────┘
                      │ HTTP
                      ↓
 ┌─────────────────────────────────────────────────────┐
-│ Backend Server (server.py) - Port 8001            │
-│ - Gemini AI + MCP client host                     │
-│ - Conversation & session management                │
+│ Backend Server (server.py) - Port 8001              │
+│ - Gemini AI + MCP client host                       │
+│ - Conversation & session management                 │
 └────────────────────┬────────────────────────────────┘
                      │ MCP Protocol (STDIO)
          ┌───────────┴──────────────┐
          │                          │
-┌────────▼─────────┐      ┌────────▼──────────┐
+┌────────▼─────────┐      ┌─────────▼─────────┐
 │ flightsearch.py  │      │ flightbooking.py  │
 │ MCP Server       │      │ MCP Server        │
-└────────┬─────────┘      └───────┬───────────┘
-         │ HTTP                    │ HTTP
-         └────────────┬────────────┘
+└────────┬─────────┘      └─────────┬─────────┘
+         │ HTTP                     │ HTTP
+         └────────────┬─────────────┘
                       ↓
 ┌─────────────────────────────────────────────────────┐
-│ Flight API (flight_api.py) - Port 8000            │
-│ - SQLite database (100k flights, seat tracking)   │
-│ - REST endpoints for search & booking              │
+│ Flight API (flight_api.py) - Port 8000              │
+│ - SQLite database (100k flights, seat tracking)     │
+│ - REST endpoints for search & booking               │
 └─────────────────────────────────────────────────────┘
 ```
 
