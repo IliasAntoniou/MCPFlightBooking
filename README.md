@@ -10,23 +10,30 @@ An AI-powered flight booking application demonstrating the Model Context Protoco
 │ - Chat interface & user authentication              │
 │ - Tool authorization (approve/deny actions)         │
 └────────────────────┬────────────────────────────────┘
+                     ▲
                      │ HTTP
-                     ↓
+                     ▼
 ┌─────────────────────────────────────────────────────┐
-│ Backend Server (host.py) - Port 8001              │
+│ Backend Server (host.py) - Port 8001                │
 │ - Gemini AI + MCP client host                       │
 │ - Conversation & session management                 │
 └────────────────────┬────────────────────────────────┘
+                     ▲
                      │ MCP Protocol (STDIO)
+                     ▼
          ┌───────────┴──────────────┐
+         ▲                          ▲
          │                          │
 ┌────────▼─────────┐      ┌─────────▼─────────┐
 │ flightsearch.py  │      │ flightbooking.py  │
 │ MCP Server       │      │ MCP Server        │
 └────────┬─────────┘      └─────────┬─────────┘
+         ▲                          ▲
          │ HTTP                     │ HTTP
          └────────────┬─────────────┘
-                      ↓
+                      ▲
+                      │
+                      ▼
 ┌─────────────────────────────────────────────────────┐
 │ Flight API (flight_api.py) - Port 8000              │
 │ - SQLite database (100k flights, seat tracking)     │
