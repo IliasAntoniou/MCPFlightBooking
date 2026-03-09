@@ -30,6 +30,6 @@ AIRLINES = [
     "BlueJet",
 ]
 
-BASE_DATE = datetime.date(2025, 12, 1)
-NUM_DAYS = 60              # how many days forward to generate
+BASE_DATE = datetime.date(2026, 3, 3)
+NUM_DAYS = 30              # how many days forward to generate
 TARGET_FLIGHTS = 100_000   # total number of flights to generate

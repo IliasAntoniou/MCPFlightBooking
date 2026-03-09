@@ -171,15 +171,14 @@ def bulk_insert_flights(flights: List[Dict[str, Any]]) -> None:
         conn.close()
 
 
-def generate_flights(num_flights: int) -> List[Dict[str, Any]]:
+def generate_more_flights(num_flights: int) -> List[Dict[str, Any]]:
     """
-    Generate num_flights fake flight records in memory.
-    Does NOT write to the database by itself.
+    Generate additional flights starting from the last existing ID.
+    Does NOT overwrite existing IDs.
     """
     flights: List[Dict[str, Any]] = []
-    random.seed(42)  # for reproducibility
 
-    current_id = 1
+    current_id = get_latest_flight_number() + 1
     while len(flights) < num_flights:
         origin, destination = random.sample(AIRPORTS, 2)  # ensures origin != destination
 
@@ -221,7 +220,7 @@ def seed_flights_if_empty(target: Optional[int] = None) -> int:
 
     n = target if target is not None else TARGET_FLIGHTS
     print(f"[db] flights table empty, generating {n} flights...")
-    flights = generate_flights(n)
+    flights = generate_more_flights(n)
     bulk_insert_flights(flights)
     final_count = count_flights()
     print(f"[db] seeding done, flights table now has {final_count} rows.")
@@ -432,3 +431,27 @@ def delete_booking(booking_id: str) -> bool:
         raise e
     finally:
         conn.close()
+    
+def get_latest_flight_number() -> int:
+    """
+    Returns the numeric part of the latest flight ID.
+    If no flights exist, returns 0.
+    Assumes IDs are formatted as FL-000123.
+    """
+    conn = get_conn()
+    try:
+        cur = conn.execute(
+            "SELECT id FROM flights ORDER BY rowid DESC LIMIT 1"
+        )
+        row = cur.fetchone()
+    finally:
+        conn.close()
+
+    if not row:
+        return 0
+
+    last_id = row["id"]  # e.g. FL-000123
+    try:
+        return int(last_id.split("-")[1])
+    except (IndexError, ValueError):
+        return 0

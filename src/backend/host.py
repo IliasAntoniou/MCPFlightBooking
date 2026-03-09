@@ -29,8 +29,8 @@ API_KEY = os.getenv("GOOGLE_AI_STUDIO_API_KEY")
 if not API_KEY:
     raise RuntimeError("GOOGLE_AI_STUDIO_API_KEY not set in .env or env vars")
 
-# Pick one of the models you saw in list_models.py (without "models/")
-MODEL_NAME = "gemini-flash-latest"  # or "gemini-pro-latest"
+# Cheapest model available - uses 2.0-flash which is very cost-efficient
+MODEL_NAME = "gemini-2.0-flash"
 
 gemini_client = genai.Client(api_key=API_KEY)
 
@@ -142,6 +142,7 @@ TOOL CALLING RULES:
 
 2. If you can answer without a tool, respond normally with helpful text.
 
+3. destinations should be in IATA code format (e.g. ATH, BCN).
 EXAMPLES:
 User: "search flights from ATH to BCN on 2025-12-03"
 Response: {{"tool": "search_flights", "args": {{"origin": "ATH", "destination": "BCN", "date": "2025-12-03"}}}}

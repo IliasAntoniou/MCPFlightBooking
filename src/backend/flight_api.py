@@ -13,7 +13,7 @@ from db import (
     init_db,
     count_flights,
     bulk_insert_flights,
-    generate_flights,
+    generate_more_flights,
     create_booking,
     get_booking,
     get_bookings_by_user,
@@ -32,9 +32,9 @@ def startup_event() -> None:
     """Initialize database and seed flights if empty."""
     init_db()
     existing = count_flights()
-    if existing == 0:
-        print(f"[flight_api] No flights in DB, generating {TARGET_FLIGHTS} flights...")
-        flights = generate_flights(TARGET_FLIGHTS)
+    if existing < 200000:
+        print(f"[flight_api] less than 200000 flights in DB, generating {TARGET_FLIGHTS} flights...")
+        flights = generate_more_flights(TARGET_FLIGHTS)
         bulk_insert_flights(flights)
         print(f"[flight_api] Inserted {len(flights)} flights into DB")
     else:
