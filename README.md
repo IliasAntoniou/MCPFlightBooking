@@ -13,7 +13,7 @@ An AI-powered flight booking application demonstrating the Model Context Protoco
                      │ HTTP
                      ↓
 ┌─────────────────────────────────────────────────────┐
-│ Backend Server (server.py) - Port 8001              │
+│ Backend Server (host.py) - Port 8001              │
 │ - Gemini AI + MCP client host                       │
 │ - Conversation & session management                 │
 └────────────────────┬────────────────────────────────┘
@@ -50,7 +50,7 @@ An AI-powered flight booking application demonstrating the Model Context Protoco
 MCPFlightBooking/
 ├── src/
 │   ├── backend/
-│   │   ├── server.py          # Main FastAPI app + MCP client host
+│   │   ├── host.py          # Main FastAPI app + MCP client host
 │   │   ├── config.py          # Centralized configuration
 │   │   ├── db.py              # Database operations
 │   │   ├── flight_api.py      # FastAPI flight search API
@@ -139,7 +139,7 @@ python -m uvicorn flight_api:app --reload --port 8000
 **Terminal 2 - Main Server:**
 ```bash
 cd src/backend
-python -m uvicorn server:app --reload --port 8001
+python -m uvicorn host:app --reload --port 8001
 ```
 
 **Terminal 3 - Open Browser:**
