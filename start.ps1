@@ -17,7 +17,7 @@ Start-Sleep -Seconds 3
 # Start Backend Server (Gemini + MCP)
 Write-Host "[2/3] Starting Gemini + MCP Server on port 8001..." -ForegroundColor Green
 $backendServerDir = Join-Path $rootDir "src\backend"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendServerDir'; Write-Host 'Gemini + MCP Server' -ForegroundColor Magenta; python -m uvicorn server:app --reload --port 8001"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendServerDir'; Write-Host 'Gemini + MCP Server' -ForegroundColor Magenta; python -m uvicorn host:app --reload --port 8001"
 
 # Wait a bit for frontend to start
 Start-Sleep -Seconds 3
