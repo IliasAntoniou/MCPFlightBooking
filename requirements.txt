@@ -1,0 +1,7 @@
+fastapi
+pydantic[email]
+uvicorn[standard]
+httpx
+mcp
+google-genai
+python-dotenv

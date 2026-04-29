@@ -29,8 +29,8 @@ API_KEY = os.getenv("GOOGLE_AI_STUDIO_API_KEY")
 if not API_KEY:
     raise RuntimeError("GOOGLE_AI_STUDIO_API_KEY not set in .env or env vars")
 
-# Cheapest model available - uses 2.0-flash which is very cost-efficient
-MODEL_NAME = "gemini-2.0-flash"
+# Cheapest model available - uses 2.5-flash-lite which is very cost-efficient
+MODEL_NAME = "gemini-2.5-flash-lite"
 
 gemini_client = genai.Client(api_key=API_KEY)
 
@@ -91,7 +91,7 @@ class GeminiMCPHost:
     async def shutdown(self):
         await self.exit_stack.aclose()
 
-    async def process_query_with_auth(self, query: str, session_id: str, conversation_history: List[Dict[str, str]] = None, user_info: Dict[str, str] = None) -> Dict[str, Any]:
+    async def process_query_with_auth(self, query: str, session_id: str, conversation_history: List[Dict[str, str]] = None, user_info: Dict[str, str] = None) -> Dict[str, Any]: # type: ignore
         """
         Process query and return authorization request if tool call is needed.
         """
@@ -224,7 +224,7 @@ RESPONSE FORMATTING (for non-tool answers):
             }
         }
 
-    async def execute_tool_call(self, tool_name: str, tool_args: Dict[str, Any], query: str, conversation_history: List[Dict[str, str]] = None, user_info: Dict[str, str] = None) -> str:
+    async def execute_tool_call(self, tool_name: str, tool_args: Dict[str, Any], query: str, conversation_history: List[Dict[str, str]] = None, user_info: Dict[str, str] = None) -> str: # type: ignore
         """
         Execute the authorized tool call and return final answer.
         """
@@ -546,7 +546,7 @@ async def chat(req: ChatRequest):
         req.message, 
         session_id,
         conversation_history[user_session_id],
-        user_info
+        user_info # type: ignore
     )
     
     # NOW add user message to history (after processing)

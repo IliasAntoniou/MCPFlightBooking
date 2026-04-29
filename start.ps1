@@ -5,11 +5,30 @@ Write-Host "Starting MCPFlightBooking System..." -ForegroundColor Cyan
 Write-Host ""
 
 $rootDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$pythonExe = Join-Path $rootDir "..\.venv\Scripts\python.exe"
+
+if (-not (Test-Path $pythonExe)) {
+    $pythonExe = Join-Path $rootDir ".venv\Scripts\python.exe"
+}
+
+if (-not (Test-Path $pythonExe)) {
+    Write-Host "Could not find a virtual environment Python executable." -ForegroundColor Red
+    Write-Host "Expected one of:" -ForegroundColor Yellow
+    Write-Host "  - $(Join-Path $rootDir '..\.venv\Scripts\python.exe')" -ForegroundColor White
+    Write-Host "  - $(Join-Path $rootDir '.venv\Scripts\python.exe')" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Create/install dependencies with:" -ForegroundColor Yellow
+    Write-Host "  python -m venv .venv" -ForegroundColor White
+    Write-Host "  .\.venv\Scripts\python.exe -m pip install -r MCPFlightBooking\requirements.txt" -ForegroundColor White
+    exit 1
+}
+
+Write-Host "Using Python: $pythonExe" -ForegroundColor DarkGray
 
 # Start Flight API (Backend Database)
 Write-Host "[1/3] Starting Flight API on port 8000..." -ForegroundColor Green
 $backendDir = Join-Path $rootDir "src\backend"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendDir'; Write-Host 'Flight API Server' -ForegroundColor Cyan; python -m uvicorn flight_api:app --reload --port 8000"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendDir'; Write-Host 'Flight API Server' -ForegroundColor Cyan; & '$pythonExe' -m uvicorn flight_api:app --reload --port 8000"
 
 # Wait a bit for backend to start
 Start-Sleep -Seconds 3
@@ -17,7 +36,7 @@ Start-Sleep -Seconds 3
 # Start Backend Server (Gemini + MCP)
 Write-Host "[2/3] Starting Gemini + MCP Server on port 8001..." -ForegroundColor Green
 $backendServerDir = Join-Path $rootDir "src\backend"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendServerDir'; Write-Host 'Gemini + MCP Server' -ForegroundColor Magenta; python -m uvicorn host:app --reload --port 8001"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendServerDir'; Write-Host 'Gemini + MCP Server' -ForegroundColor Magenta; & '$pythonExe' -m uvicorn host:app --reload --port 8001"
 
 # Wait a bit for frontend to start
 Start-Sleep -Seconds 3
