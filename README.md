@@ -107,8 +107,8 @@ MCPFlightBookingAssistant/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/IliasAntoniou/MCPFlightBooking.git
-   cd MCPFlightBooking
+   git clone https://github.com/IliasAntoniou/MCPFlightBookingAssistant.git
+   cd MCPFlightBookingAssistant
    ```
 
 2. **Install Python dependencies**
