@@ -3,5 +3,7 @@ pydantic[email]
 uvicorn[standard]
 httpx
 mcp
-google-genai
 python-dotenv
+requests
+sentence-transformers
+numpy

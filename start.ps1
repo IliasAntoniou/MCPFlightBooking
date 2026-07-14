@@ -41,10 +41,10 @@ Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendDir';
 # Wait a bit for backend to start
 Start-Sleep -Seconds 3
 
-# Start Backend Server (Gemini + MCP)
-Write-Host "[3/4] Starting Gemini + MCP Server on port 8001..." -ForegroundColor Green
+# Start Backend Server (Llama + MCP)
+Write-Host "[3/4] Starting Llama + MCP Server on port 8001..." -ForegroundColor Green
 $backendServerDir = Join-Path $rootDir "src\backend"
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendServerDir'; Write-Host 'Gemini + MCP Server' -ForegroundColor Magenta; & '$pythonExe' -m uvicorn host:app --reload --port 8001"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$backendServerDir'; Write-Host 'Llama + MCP Server' -ForegroundColor Magenta; & '$pythonExe' -m uvicorn host:app --reload --port 8001"
 
 # Wait a bit for frontend to start
 Start-Sleep -Seconds 3
@@ -61,7 +61,7 @@ Write-Host ""
 Write-Host "Services running:" -ForegroundColor Cyan
 Write-Host "  - Ollama:            http://localhost:11434" -ForegroundColor White
 Write-Host "  - Flight API:        http://localhost:8000" -ForegroundColor White
-Write-Host "  - Gemini + MCP:      http://localhost:8001" -ForegroundColor White
+Write-Host "  - Llama + MCP:       http://localhost:8001" -ForegroundColor White
 Write-Host "  - Frontend:          Browser opened" -ForegroundColor White
 Write-Host ""
 Write-Host "Close the PowerShell windows to stop the servers." -ForegroundColor Yellow
