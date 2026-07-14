@@ -1,4 +1,4 @@
-# MCPFlightBooking
+# MCPFlightBookingAssistant
 
 An AI-powered flight booking application demonstrating the Model Context Protocol (MCP). Users interact with a conversational AI assistant through a web interface to search flights and manage bookings. The system integrates Google Gemini with MCP servers to provide natural language access to flight data and booking operations.
 
