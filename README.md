@@ -25,11 +25,11 @@ An AI-powered flight booking application demonstrating the Model Context Protoco
 │ Ollama Server    │        ▲                          ▲
 │ Port 11434       │        │                          │
 │ (local LLM)      │  ┌─────▼──────────┐   ┌───────────▼──────┐
-└──────────────────┘  │ flightsearch.py │   │ flightbooking.py │
-                      │ MCP Server      │   │ MCP Server       │
-                      └─────┬───────────┘   └───────────┬──────┘
-                            │ HTTP                       │ HTTP
-                            └─────────────┬──────────────┘
+└──────────────────┘  │ flightsearch.py│   │ flightbooking.py │
+                      │ MCP Server     │   │ MCP Server       │
+                      └─────┬──────────┘   └───────────┬──────┘
+                            │ HTTP                     │ HTTP
+                            └─────────────┬────────────┘
                                           ▼
 ┌─────────────────────────────────────────────────────┐
 │ Flight API (flight_api.py) - Port 8000              │
